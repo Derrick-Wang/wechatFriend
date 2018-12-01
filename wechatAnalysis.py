@@ -1,4 +1,5 @@
 import pickle
+import itchat
 import pandas as pd
 from pyecharts import Pie, Map, Style, Page, Bar, Scatter, EffectScatter, Grid
 
@@ -8,10 +9,16 @@ def get_key_info(friends_info, key):
     return list(map(lambda friend_info: friend_info.get(key), friends_info))
 
 
-# 获得所需的微信好友信息
+# 获得所需好友信息
 def get_friends_info():
-    with open('my_friends.pickle', 'rb') as f:
-        friends = pickle.load(f)  # 使用pickle的load函数下载被打开被读取到的数据。
+    # with open('my_friends.pickle', 'rb') as f:
+        # # 使用pickle的load函数下载保存的数据。
+        # friends = pickle.load(f)
+    # 扫码登录，如果单独运行此文件
+    itchat.auto_login(hotReload=True)
+    friends = itchat.get_friends()
+
+    # 取出需要数据
     friends_info = dict(
         # 省份
         province=get_key_info(friends, "Province"),
@@ -58,7 +65,7 @@ def analysisProvince():
     df = pd.DataFrame(friends_info)
     province_count = df.groupby('province', as_index=True)['province'].count().sort_values()
     temp = list(map(lambda x: x if x != '' else '未知', list(province_count.index)))
-    # 画图
+    # echarts画图
     page = Page()
     style = Style(width=1000, height=350)
     style_middle = Style(width=1000, height=350)
@@ -69,10 +76,8 @@ def analysisProvince():
     chart2 = Bar('好友分布柱状图', **style_middle.init_style)
     chart2.add('', attr, value, is_stack=True,
                label_pos='inside', is_legend_show=True, is_label_show=True, xaxis_rotate=90)
-
-
     page.add(chart2)
-    page.render('analysisProvince.html')
+    page.render('ProvinceData.html')
 
 
 # 具体省份分析
